@@ -1,6 +1,6 @@
-require('dotenv').config();
-const token = process.env.TOKEN;
-('dotenvconst {
+require("dotenv").config();
+
+const {
   Client,
   GatewayIntentBits,
   Partials,
@@ -11,7 +11,6 @@ const token = process.env.TOKEN;
   PermissionsBitField,
   EmbedBuilder
 } = require("discord.js");
-require("dotenv").config();
 
 const client = new Client({
   intents: [
