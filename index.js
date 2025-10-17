@@ -1,5 +1,27 @@
+// ✅ Carregar variáveis do .env
 require("dotenv").config();
 
+// ✅ Servidor web para manter o bot online no Render + UptimeRobot
+const express = require("express");
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.get("/", (req, res) => res.send("✅ Bot online e funcionando!"));
+app.head("/", (req, res) => res.sendStatus(200));
+
+// 🔁 Reinício automático se der erro não tratado
+process.on("uncaughtException", (err) => {
+  console.error("❌ Erro não tratado:", err);
+});
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("⚠️ Promessa rejeitada:", reason);
+});
+
+app.listen(port, () => console.log(`🌐 Servidor web ativo na porta ${port}`));
+
+// ==============================
+// 🤖 Código principal do bot
+// ==============================
 const {
   Client,
   GatewayIntentBits,
@@ -9,16 +31,16 @@ const {
   ButtonBuilder,
   ButtonStyle,
   PermissionsBitField,
-  EmbedBuilder
+  EmbedBuilder,
 } = require("discord.js");
 
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
+    GatewayIntentBits.MessageContent,
   ],
-  partials: [Partials.Channel]
+  partials: [Partials.Channel],
 });
 
 // 📌 IDs importantes
@@ -36,8 +58,8 @@ client.on("messageCreate", async (message) => {
       .setTitle("📋 │ SUPORTE - HorizonMC")
       .setDescription(
         "Para agilizar o atendimento, selecione a **categoria** que melhor corresponde à sua solicitação e envie o máximo de informações possíveis.\n\n" +
-        "➤ :small_blue_diamond: **Importante:** quanto mais detalhes você fornecer (prints, descrições, horários aproximados, etc.), mais rápido poderemos entender e resolver seu problema.\n\n" +
-        "➤ :hourglass_flowing_sand: **Seja paciente!** Os tickets são atendidos por ordem de chegada. O prazo máximo de resposta é de até **2 dias úteis**."
+          "➤ :small_blue_diamond: **Importante:** quanto mais detalhes você fornecer (prints, descrições, horários aproximados, etc.), mais rápido poderemos entender e resolver seu problema.\n\n" +
+          "➤ :hourglass_flowing_sand: **Seja paciente!** Os tickets são atendidos por ordem de chegada. O prazo máximo de resposta é de até **2 dias úteis**."
       )
       .setColor("Orange")
       .setImage("https://media.discordapp.net/attachments/1407081682707943595/1415102569369309285/image.png")
@@ -51,25 +73,25 @@ client.on("messageCreate", async (message) => {
           label: "Dúvidas!",
           description: "Tire suas dúvidas sobre o servidor.",
           value: "duvida",
-          emoji: "❓"
+          emoji: "❓",
         },
         {
           label: "Reportar Erros!",
           description: "Reporte algum erro ou problema técnico.",
           value: "erro",
-          emoji: "🚨"
+          emoji: "🚨",
         },
         {
           label: "Financeiro!",
           description: "Compra de kits, vips e unban.",
           value: "financeiro",
-          emoji: "💰"
+          emoji: "💰",
         },
         {
           label: "Outro Motivo!",
           description: "Clique aqui para ser atendido.",
           value: "outro",
-          emoji: "📌"
+          emoji: "📌",
         }
       );
 
@@ -91,7 +113,7 @@ client.on("interactionCreate", async (interaction) => {
 
     if (existente) {
       return interaction.editReply({
-        content: `⚠️ Você já possui um ticket aberto em ${existente}.`
+        content: `⚠️ Você já possui um ticket aberto em ${existente}.`,
       });
     }
 
@@ -111,26 +133,18 @@ client.on("interactionCreate", async (interaction) => {
         {
           id: STAFF_ROLE_ID,
           allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages],
-        }
-      ]
+        },
+      ],
     });
 
     const botoes = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId("fechar_ticket")
-        .setLabel("Fechar Ticket")
-        .setEmoji("❌")
-        .setStyle(ButtonStyle.Danger),
-      new ButtonBuilder()
-        .setCustomId("resgatar_ticket")
-        .setLabel("Resgatar Ticket")
-        .setEmoji("📌")
-        .setStyle(ButtonStyle.Secondary)
+      new ButtonBuilder().setCustomId("fechar_ticket").setLabel("Fechar Ticket").setEmoji("❌").setStyle(ButtonStyle.Danger),
+      new ButtonBuilder().setCustomId("resgatar_ticket").setLabel("Resgatar Ticket").setEmoji("📌").setStyle(ButtonStyle.Secondary)
     );
 
     await canal.send({
       content: `🎫 Olá ${interaction.user}, você abriu um ticket de **${tipo.toUpperCase()}**.\nExplique seu problema com detalhes.`,
-      components: [botoes]
+      components: [botoes],
     });
 
     await interaction.editReply({ content: `✅ Ticket criado com sucesso em ${canal}` });
@@ -141,7 +155,7 @@ client.on("interactionCreate", async (interaction) => {
     if (!interaction.member.roles.cache.has(STAFF_ROLE_ID)) {
       return interaction.reply({
         content: "❌ Apenas membros da staff podem resgatar tickets!",
-        ephemeral: true
+        ephemeral: true,
       });
     }
 
@@ -151,14 +165,13 @@ client.on("interactionCreate", async (interaction) => {
     if (interaction.channel.topic.includes("Atendido por:") && !interaction.channel.topic.includes("Ninguém ainda")) {
       return interaction.reply({
         content: "⚠️ Esse ticket já foi resgatado por outro staff!",
-        ephemeral: true
+        ephemeral: true,
       });
     }
 
     await interaction.channel.setTopic(`Dono: ${dono} | Atendido por: ${interaction.user.id}`);
-
     await interaction.reply({
-      content: `📌 Ticket agora está sendo atendido por ${interaction.user}!`
+      content: `📌 Ticket agora está sendo atendido por ${interaction.user}!`,
     });
   }
 
@@ -166,7 +179,6 @@ client.on("interactionCreate", async (interaction) => {
   if (interaction.isButton() && interaction.customId === "fechar_ticket") {
     const dono = interaction.channel.topic?.match(/Dono: (\d+)/)?.[1];
     const staff = interaction.channel.topic?.match(/Atendido por: (\d+)/)?.[1];
-
     const member = dono ? await interaction.guild.members.fetch(dono).catch(() => null) : null;
 
     await interaction.channel.delete();
@@ -209,7 +221,7 @@ client.on("interactionCreate", async (interaction) => {
 
     await interaction.reply({
       content: "✅ Obrigado por avaliar o atendimento!",
-      ephemeral: true
+      ephemeral: true,
     });
   }
 });
